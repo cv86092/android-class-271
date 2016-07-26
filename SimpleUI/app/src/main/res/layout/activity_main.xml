@@ -20,7 +20,6 @@
         android:layout_height="wrap_content"
         android:text="Button"
         android:id="@+id/button"
-        android:layout_alignParentStart="true"
         android:textSize="12dp"
         android:textColor="@color/abc_input_method_navigation_guard"
         android:onClick="submit"
@@ -45,18 +44,21 @@
         android:id="@+id/radioGroup">
 
         <RadioButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="male"
+            android:layout_width="120dp"
+            android:layout_height="160dp"
             android:id="@+id/maleRadioButton"
-            android:checked="true" />
+            android:checked="true"
+            android:drawableRight="@drawable/male"
+        ></RadioButton>
 
         <RadioButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="female"
+            android:layout_width="120dp"
+            android:layout_height="160dp"
             android:id="@+id/femaleRadioButton"
             android:layout_gravity="center_horizontal"
-            android:checked="false" />
+            android:checked="false"
+            android:drawableRight="@drawable/female">
+
+        </RadioButton>
     </RadioGroup>
 </RelativeLayout>
