@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="storeinfos">
+        <item>NTU store</item>
+        <item>Plantynet store</item>
+        <item>HiNet store</item>
+        <item>KBRO store </item>
+        <item>WFSS store</item>
+        <item>TC store</item>
+
+
+
+    </string-array>
+
+</resources>
