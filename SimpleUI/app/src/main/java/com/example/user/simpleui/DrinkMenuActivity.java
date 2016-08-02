@@ -3,7 +3,6 @@ package com.example.user.simpleui;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
-
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,6 +11,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,16 +21,14 @@ public class DrinkMenuActivity extends AppCompatActivity implements DrinkOrderDi
     ListView drinkMenuListView;
     TextView totalTextView;
 
-
-
-
-    String[] drinkNames = new String[]{"White gourd tea","Black tea","Pearl black tea","Milk black tea"};
-    int[] lPrices = new int[]{25,35,45,25};
+    String[] drinkNames = new String[]{"White gourd tea", "Black tea", "Pearl black tea", "Milk black tea"};
+    int[] lPrices = new int[]{25,35,35,25};
     int[] mPrices = new int[]{15,25,25,15};
-    int[] images = new int[]{R.drawable.drink1,R.drawable.drink4,R.drawable.drink3,R.drawable.drink2};
+    int[] images = new int[]{R.drawable.drink1, R.drawable.drink4, R.drawable.drink3, R.drawable.drink2};
 
     List<Drink> drinkList = new ArrayList<>();
-    List<Drink> drinkOrderList = new ArrayList<>();
+
+    ArrayList<DrinkOrder> drinkOrderList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,14 +37,15 @@ public class DrinkMenuActivity extends AppCompatActivity implements DrinkOrderDi
 
         drinkMenuListView = (ListView)findViewById(R.id.drinkMenuListView);
         totalTextView = (TextView)findViewById(R.id.totalTextView);
+
         setData();
+
+        drinkOrderList = getIntent().getParcelableArrayListExtra("drinkOrderList");
+        setupTotalTextView();
 
         setupDrinkMenuListView();
 
-
-
-        Log.d("debug","DrinkMenuActivity OnCreate");
-
+        Log.d("Debug", "DrinkMenuActivity OnCreate");
     }
 
     public void setData()
@@ -79,89 +78,97 @@ public class DrinkMenuActivity extends AppCompatActivity implements DrinkOrderDi
 
     private void  showDrinkOrderDialog(Drink drink)
     {
+        DrinkOrder order = new DrinkOrder(drink);
+
+        for(DrinkOrder drinkOrder: drinkOrderList)
+        {
+            if(drinkOrder.drink.name.equals(drink.name))
+            {
+                order = drinkOrder;
+                break;
+            }
+        }
+
         FragmentManager fragmentManager = getFragmentManager();
 
         FragmentTransaction ft = fragmentManager.beginTransaction();
 
-        DrinkOrderDialog dialog = DrinkOrderDialog.newInstance(drink);
+        DrinkOrderDialog dialog = DrinkOrderDialog.newInstance(order);
 
         dialog.show(ft, "DrinkOrderDialog");
 
     }
+
     public void setupTotalTextView()
     {
         int total = 0;
-        for (Drink drink :drinkOrderList)
+        for (DrinkOrder drinkOrder :drinkOrderList)
         {
-            total += drink.mPrice;
+            total += drinkOrder.total();
         }
 
         totalTextView.setText(String.valueOf(total));
     }
 
-
-    public void done(View view){
-        Intent intent = new Intent();
-        setResult(RESULT_OK);
-        finish();
-
-    }
-
-    public void goToMain(View view)
+    public void done(View view)
     {
         Intent intent = new Intent();
-        setResult(RESULT_CANCELED);
+        intent.putExtra("results", drinkOrderList);
+        setResult(RESULT_OK, intent);
         finish();
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        Log.d("debug","DrinkMEnuActivity OnStart");
+        Log.d("debug", "DrinkMenuActivity OnStart");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d("debug","DrinkMEnuActivity OnResume");
+        Log.d("debug", "DrinkMenuActivity OnResume");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        Log.d("debug","DrinkMEnuActivity OnPause");
-
+        Log.d("debug", "DrinkMenuActivity OnPause");
     }
 
     @Override
     protected void onStop() {
-        super.onPause();
-        Log.d("debug","DrinkMEnuActivity OnStop");
-
+        super.onStop();
+        Log.d("debug", "DrinkMenuActivity OnStop");
     }
 
     @Override
     protected void onRestart() {
         super.onRestart();
-        Log.d("debug","DrinkMEnuActivity OnStart");
-
+        Log.d("debug", "DrinkMenuActivity onRestart");
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.d("debug","DrinkMEnuActivity OnDestroy");
-
+        Log.d("debug", "DrinkMenuActivity onDestroy");
     }
-
 
     @Override
-    public void onDrinkOrderFinished() {
+    public void onDrinkOrderFinished(DrinkOrder drinkOrder) {
+        for (int i = 0 ; i < drinkOrderList.size() ; i++)
+        {
+            if(drinkOrderList.get(i).drink.name.equals(drinkOrder.drink.name))
+            {
+                drinkOrderList.set(i, drinkOrder);
+                setupTotalTextView();
+                return;
+            }
+        }
 
+        drinkOrderList.add(drinkOrder);
+        setupTotalTextView();
     }
 }
-
-
-
 
 
