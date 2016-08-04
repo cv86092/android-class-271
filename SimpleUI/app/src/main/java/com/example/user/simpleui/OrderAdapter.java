@@ -6,13 +6,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
-
+import org.w3c.dom.Text;
 import java.util.List;
-
+import android.widget.ImageView;
+import android.widget.TextView;
 /**
  * Created by Michael on 2016/7/27.
  */
-public class OrderAdapter extends BaseAdapter{
+public class OrderAdapter extends BaseAdapter {
 
     List<Order> orders;
     LayoutInflater inflater;
@@ -20,8 +21,7 @@ public class OrderAdapter extends BaseAdapter{
     public OrderAdapter(Context context, List<Order> orderList)
     {
         this.orders = orderList;
-        inflater = LayoutInflater.from(context);
-
+        this.inflater = LayoutInflater.from(context);
     }
 
     @Override
@@ -42,34 +42,37 @@ public class OrderAdapter extends BaseAdapter{
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         Holder holder;
-        if(convertView == null){
-            convertView = inflater.inflate(R.layout.listview_order_item,null);
+
+        if(convertView == null)
+        {
+            convertView = inflater.inflate(R.layout.listview_order_item, null);
             TextView noteTextView = (TextView)convertView.findViewById(R.id.noteTextView);
             TextView storeInfoTextView = (TextView)convertView.findViewById(R.id.storeInfoTextView);
             TextView drinkTextView = (TextView)convertView.findViewById(R.id.drinkTextView);
 
             holder = new Holder();
-            holder.noteTextView= noteTextView;
-            holder.storeInfoTextView = storeInfoTextView;
+            holder.noteTextView = noteTextView;
             holder.drinkTextView = drinkTextView;
+            holder.storeInfoTextView = storeInfoTextView;
 
             convertView.setTag(holder);
         }
-        else{
-
-            holder = (Holder) convertView.getTag();
+        else
+        {
+            holder = (Holder)convertView.getTag();
         }
 
 
         Order order = orders.get(position);
-        holder.noteTextView.setText(order.note);
-        holder.storeInfoTextView.setText(order.storeInfo);
+        holder.noteTextView.setText(order.getNote());
+        holder.storeInfoTextView.setText(order.getStoreInfo());
         holder.drinkTextView.setText(String.valueOf(order.total()));
-        return convertView;
 
+        return convertView;
     }
 
-    class Holder{
+    class Holder
+    {
         TextView noteTextView;
         TextView storeInfoTextView;
         TextView drinkTextView;

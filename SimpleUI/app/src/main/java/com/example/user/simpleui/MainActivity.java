@@ -25,8 +25,11 @@ import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import com.parse.FindCallback;
+import com.parse.ParseException;
 import com.parse.ParseObject;
-
+import com.parse.ParseQuery;
+import com.parse.SaveCallback;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,27 +52,21 @@ public class MainActivity extends AppCompatActivity {
 
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
-    SharedPreferences.Editor spinnerEditor;
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    private GoogleApiClient client;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        textView = (TextView) findViewById(R.id.textView);
-        editText = (EditText) findViewById(R.id.editText);
-        radioGroup = (RadioGroup) findViewById(R.id.radioGroup);
-        listView = (ListView) findViewById(R.id.listView);
-        spinner = (Spinner) findViewById(R.id.spinner);
+        textView = (TextView)findViewById(R.id.textView);
+        editText = (EditText)findViewById(R.id.editText);
+        radioGroup = (RadioGroup)findViewById(R.id.radioGroup);
+        listView = (ListView)findViewById(R.id.listView);
+        spinner = (Spinner)findViewById(R.id.spinner);
 
         sharedPreferences = getSharedPreferences("UIState", Context.MODE_PRIVATE);
         editor = sharedPreferences.edit();
+
 
         radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
@@ -97,66 +94,72 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Order order = (Order) parent.getAdapter().getItem(position);
-//              Toast.makeText(MainActivity.this, "You click on" + order.note, Toast.LENGTH_SHORT).show();
-                Snackbar.make(parent, "You click on" + order.note, Snackbar.LENGTH_SHORT).setAction("OK", new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-
-                    }
-                }).show();
+                goToOrderDetail(order);
+//                Toast.makeText(MainActivity.this, "You click on" + order.note, Toast.LENGTH_SHORT).show();
+//                Snackbar.make(parent, "You click on" + order.getNote(), Snackbar.LENGTH_SHORT).setAction("OK", new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//
+//                    }
+//                }).show();
             }
-
-
         });
 
-
-        setupListView();
+        setupOrderHistory();
+        //setupListView();
         setupSpinner();
 
-        restoreUIstate();
+        restoreUIState();
 
-        ParseObject parseObject = new ParseObject("TestObject");
-        parseObject.put("foo","Michael");
-        parseObject.saveInBackground();
-
-
+//        ParseObject parseObject = new ParseObject("TestObject");
+//        parseObject.put("foo", "bar");
+//        parseObject.saveInBackground(new SaveCallback() {
+//            @Override
+//            public void done(ParseException e) {
+//                if (e == null)
+//                    Toast.makeText(MainActivity.this, "'Success", Toast.LENGTH_LONG).show();
+//                else {
+//                    e.printStackTrace();
+//                    Toast.makeText(MainActivity.this, "'Failed", Toast.LENGTH_LONG).show();
+//                }
+//            }
+//        });
+//
+//        ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("TestObject");
+//        query.findInBackground(new FindCallback<ParseObject>() {
+//            @Override
+//            public void done(List<ParseObject> objects, ParseException e) {
+//                for (ParseObject parseObject1 : objects)
+//                {
+//                    Toast.makeText(MainActivity.this, parseObject1.getString("foo"), Toast.LENGTH_LONG).show();
+//                }
+//            }
+//        });
 
         Log.d("debug", "MainActivity OnCreate");
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
-    private void restoreUIstate() {
+    private void restoreUIState()
+    {
         editText.setText(sharedPreferences.getString("editText", ""));
-        spinner.setSelection(sharedPreferences.getInt("spinnerSelection", 0));
-
     }
 
-    private void setupOrderHistory() {
-        String orderDatas = Utils.readFile(this, "History");
-        String[] orderData = orderDatas.split("\n");
-        Gson gson = new Gson();
-        for (String data : orderData) {
-            try {
-
-                Order order = gson.fromJson(data, Order.class);
-                if (order != null) {
-                    orders.add(order);
+    private void setupOrderHistory()
+    {
+        Order.getOrdersFromLocalThenRemote(new FindCallback<Order>() {
+            @Override
+            public void done(List<Order> objects, ParseException e) {
+                if(e == null){
+                    orders = objects;
+                    setupListView();
                 }
-            } catch (JsonSyntaxException e) {
-
-
             }
-
-
-        }
-
+        });
 
     }
 
-
-    private void setupListView() {
+    private void setupListView()
+    {
 //        String[] data = new String[]{"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15"};
 //        ArrayAdapter adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, orders);
 
@@ -164,62 +167,60 @@ public class MainActivity extends AppCompatActivity {
         listView.setAdapter(adapter);
     }
 
-    private void setupSpinner() {
+    private void setupSpinner()
+    {
         String[] data = getResources().getStringArray(R.array.storeinfos);
         ArrayAdapter adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, data);
         spinner.setAdapter(adapter);
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                int selectedPosition = spinner.getSelectedItemPosition();
-                editor.putInt("spinnerSelection", selectedPosition);
-                editor.commit();
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
-
-
     }
 
-    public void submit(View view) {
+    public void submit(View view)
+    {
         String text = editText.getText().toString();
         String result = text;
         textView.setText(result);
         editText.setText("");
 
         Order order = new Order();
-        order.note = text;
-        order.drinkOrders = drinkOrders;
-        order.storeInfo = (String) spinner.getSelectedItem();
+        order.setNote(text);
+        order.setDrinkOrders(drinkOrders);
+        order.setStoreInfo((String) spinner.getSelectedItem());
 
         orders.add(order);
-        Gson gson = new Gson();
+        order.saveEventually();
+        order.pinInBackground("Order");
 
+        Gson gson = new Gson();
         String orderData = gson.toJson(order);
-        textView.setText(orderData);
         Utils.writeFile(this, "history", orderData + "\n");
 
         drinkOrders = new ArrayList<>();
-        setupOrderHistory();
         setupListView();
     }
 
-    public void goToMenu(View view) {
+    public void goToMenu(View view)
+    {
         Intent intent = new Intent();
         intent.setClass(this, DrinkMenuActivity.class);
         intent.putExtra("drinkOrderList", drinkOrders);
         startActivityForResult(intent, REQUEST_CODE_DRINK_MENU_ACTIVITY);
     }
 
-    @Override
+    public void goToOrderDetail(Order order) {
+        Intent intent = new Intent();
+        intent.setClass(this, OrderDetailActivity.class);
+        intent.putExtra("order", order);
+        startActivity(intent);
+    }
+
+
+        @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CODE_DRINK_MENU_ACTIVITY) {
-            if (resultCode == RESULT_OK) {
+        if(requestCode == REQUEST_CODE_DRINK_MENU_ACTIVITY)
+        {
+            if(resultCode == RESULT_OK)
+            {
                 drinkOrders = data.getParcelableArrayListExtra("results");
                 Toast.makeText(this, "Done", Toast.LENGTH_LONG).show();
             }
@@ -229,23 +230,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client.connect();
         Log.d("debug", "MainActivity OnStart");
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        Action viewAction = Action.newAction(
-                Action.TYPE_VIEW, // TODO: choose an action type.
-                "Main Page", // TODO: Define a title for the content shown.
-                // TODO: If you have web page content that matches this app activity's content,
-                // make sure this auto-generated web page URL is correct.
-                // Otherwise, set the URL to null.
-                Uri.parse("http://host/path"),
-                // TODO: Make sure this auto-generated app URL is correct.
-                Uri.parse("android-app://com.example.user.simpleui/http/host/path")
-        );
-        AppIndex.AppIndexApi.start(client, viewAction);
     }
 
     @Override
@@ -263,23 +248,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        Action viewAction = Action.newAction(
-                Action.TYPE_VIEW, // TODO: choose an action type.
-                "Main Page", // TODO: Define a title for the content shown.
-                // TODO: If you have web page content that matches this app activity's content,
-                // make sure this auto-generated web page URL is correct.
-                // Otherwise, set the URL to null.
-                Uri.parse("http://host/path"),
-                // TODO: Make sure this auto-generated app URL is correct.
-                Uri.parse("android-app://com.example.user.simpleui/http/host/path")
-        );
-        AppIndex.AppIndexApi.end(client, viewAction);
         Log.d("debug", "MainActivity OnStop");
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client.disconnect();
     }
 
     @Override
@@ -293,6 +262,4 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         Log.d("debug", "MainActivity onDestroy");
     }
-
 }
-

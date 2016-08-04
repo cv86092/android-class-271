@@ -10,6 +10,8 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
+import com.parse.FindCallback;
+import com.parse.ParseException;
 
 import org.w3c.dom.Text;
 
@@ -43,22 +45,33 @@ public class DrinkMenuActivity extends AppCompatActivity implements DrinkOrderDi
         drinkOrderList = getIntent().getParcelableArrayListExtra("drinkOrderList");
         setupTotalTextView();
 
-        setupDrinkMenuListView();
+        //setupDrinkMenuListView();
 
         Log.d("Debug", "DrinkMenuActivity OnCreate");
     }
 
     public void setData()
     {
-        for(int i = 0; i < 4; i++)
-        {
-            Drink drink = new Drink();
-            drink.name = drinkNames[i];
-            drink.lPrice = lPrices[i];
-            drink.mPrice = mPrices[i];
-            drink.imageId = images[i];
-            drinkList.add(drink);
-        }
+        Drink.getQuery().findInBackground(new FindCallback<Drink>() {
+            @Override
+            public void done(List<Drink> objects, ParseException e) {
+                if(e==null)
+                {
+                    drinkList = objects;
+                    setupDrinkMenuListView();
+                }
+            }
+        });
+
+//        for(int i = 0; i < 4; i++)
+//        {
+//            Drink drink = new Drink();
+//            drink.name = drinkNames[i];
+//            drink.lPrice = lPrices[i];
+//            drink.mPrice = mPrices[i];
+//            drink.imageId = images[i];
+//            drinkList.add(drink);
+//        }
     }
 
     public void setupDrinkMenuListView()
@@ -82,7 +95,7 @@ public class DrinkMenuActivity extends AppCompatActivity implements DrinkOrderDi
 
         for(DrinkOrder drinkOrder: drinkOrderList)
         {
-            if(drinkOrder.drink.name.equals(drink.name))
+            if(drinkOrder.getDrink().getObjectId().equals(drink.getObjectId()))
             {
                 order = drinkOrder;
                 break;
@@ -158,7 +171,7 @@ public class DrinkMenuActivity extends AppCompatActivity implements DrinkOrderDi
     public void onDrinkOrderFinished(DrinkOrder drinkOrder) {
         for (int i = 0 ; i < drinkOrderList.size() ; i++)
         {
-            if(drinkOrderList.get(i).drink.name.equals(drinkOrder.drink.name))
+            if(drinkOrderList.get(i).getDrink().getObjectId().equals(drinkOrder.getDrink().getObjectId()))
             {
                 drinkOrderList.set(i, drinkOrder);
                 setupTotalTextView();
